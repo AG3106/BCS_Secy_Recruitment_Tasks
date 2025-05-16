@@ -3,8 +3,8 @@ Submissions for BCS Secretary Recruitment Tasks
 
 ### The Goblet of Fire:
 **Instructions to run:** <br>
-Training: Run `train` <br>
-Run on pre-trained weights: Run `test`
+Training: Run `train.py` <br>
+Run on pre-trained weights: Run `test.py`
 <br><br>
 **Environment:**<br>
 The environment follows the instructions given, i.e, positions of harry, cup and death eater are randomly generated, death eater moves towards harry using BFS algorithm, etc.
@@ -33,7 +33,7 @@ This gave the agent the chance to explore initially and later to exploit and gat
 **Rendering:**
 <br>
 Pygame was used to render the game.
-`view_board` from environment was saved for each step and later rendered in `pygameview`
+`view_board` from environment was saved for each step and later rendered in `pygameview.py`
 
 **Evaluation:**
 <br>
