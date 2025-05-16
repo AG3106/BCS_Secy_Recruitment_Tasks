@@ -5,7 +5,7 @@ def pygame_view(frames, scores):
 
     ROWS, COLS = frames[0].shape # Grid dimensions
     CELL_SIZE = 40  # Size of each block in pixels
-    WIDTH, HEIGHT = COLS * CELL_SIZE, ROWS * CELL_SIZE + 40  # Extra height for the score display
+    WIDTH, HEIGHT = COLS * CELL_SIZE, ROWS * CELL_SIZE + 40  # Extra height for the info display
 
     # Colors
     BLACK = (0, 0, 0)
@@ -18,15 +18,12 @@ def pygame_view(frames, scores):
 
     # Create a Pygame window
     window = pygame.display.set_mode((WIDTH, HEIGHT))  # Main display window
-    pygame.display.set_caption("The Goblet of Fire")
-    screen = pygame.Surface((WIDTH, HEIGHT))  # Off-screen surface for video capture
-    clock = pygame.time.Clock()  # For smooth updates
+    pygame.display.set_caption("The Goblet of Fire") #title
+    screen = pygame.Surface((WIDTH, HEIGHT))
+    clock = pygame.time.Clock()
 
     # Font for displaying the score
     font = pygame.font.Font(None, 36)
-
-    # List to store frames for the video
-    video_frames = []
 
     running = True
     for frame_index, frame in enumerate(frames):
@@ -38,7 +35,7 @@ def pygame_view(frames, scores):
         if not running:
             break
 
-        # Fill screen with background color
+        # Fill the screen with background color
         screen.fill(BLACK)
 
         # Draw the grid
@@ -61,10 +58,6 @@ def pygame_view(frames, scores):
         window.blit(screen, (0, 0))
         pygame.display.flip()
 
-        # Capture the frame for video
-        frame_data = pygame.surfarray.array3d(screen)
-        video_frames.append(frame_data.swapaxes(0, 1))  # Swap axes to match moviepy's format
-
-        clock.tick(4)  # 2 frames per second
+        clock.tick(4)  # 4 frames per second
 
     pygame.quit()

@@ -7,7 +7,7 @@ Q_table = np.load("Q_table.npy")
 env = Env()
 n_states = len(env.zero_indices)
 n_actions = 4
-epochs = 100
+epochs = 100 # change to choose no. of generations
 max_reward = 0
 
 reward_arr = []
@@ -22,7 +22,8 @@ index.append('Start: The Triwizard Tournament')
 index.append('Blue: Harry, Green: Cup, Red: Death Eater')
 index.append('Blue: Harry, Green: Cup, Red: Death Eater')
 index.append('Epoch 1')
-# Q-learning process
+
+# Q-learning
 for epoch in range(epochs):
     env.reset()
     step = 0
@@ -44,9 +45,10 @@ for epoch in range(epochs):
         treward += reward
         if env.steps > 100:
             # print("max step reached.")
-            del frames[-100:]
+            del frames[-100:] # if the max step limit reached implies, the episode is stuck, hence deleting frames
             win_arr.append(0)
             break
+
         h_state, c_state, d_state = next_state  # Update current state
         if done:
             reward_arr.append(treward)
@@ -59,15 +61,18 @@ for epoch in range(epochs):
                 print(f"Epoch {epoch+1}: Lost!")
                 win_arr.append(0)
             break
+
 print('win_rate: ', (sum(win_arr) / len(win_arr)))
 
+# in graph 1 implies win, 0 implies game over
 plt.title("Wins vs. Epochs")
 plt.plot(win_arr)
 plt.xlabel("episodes")
 plt.ylabel("Win")
+plt.savefig("./plots/test_wins.png")
 plt.show()
 
-pygameview.pygame_view(frames, index)
+pygameview.pygame_view(frames, index) # rendering the generations
 
 # Print learned Q-table
 # print("Learned Q-table:")
