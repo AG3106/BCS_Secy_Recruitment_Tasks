@@ -1,9 +1,9 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from env import Env
+from bonus_env import Env
 import pygameview
 # Parameters
-Q_table = np.load("Q_table.npy")
+Q_table = np.load("Q_table_bonus.npy")
 env = Env()
 n_states = len(env.zero_indices)
 n_actions = 4
@@ -69,7 +69,7 @@ plt.title("Wins vs. Epochs")
 plt.plot(win_arr)
 plt.xlabel("episodes")
 plt.ylabel("Win")
-plt.savefig("./plots/test_wins.png")
+plt.savefig("./plots/test_wins_bonus.png")
 plt.show()
 
 pygameview.pygame_view(frames, index) # rendering the generations

@@ -49,22 +49,32 @@ def distance(pos1, pos2):
 class Env:
 
     def __init__(self):
-        self.death_eater_pos = None
+        self.death_eater_pos1 = None
+        self.death_eater_pos2 = None
         self.harry_pos = None
         self.width = 15
         self.height = 10
-        self.board = np.array([
-                        [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-                        [1,0,0,0,0,0,0,0,0,0,1,0,0,0,1],
-                        [1,0,1,1,0,1,0,1,0,1,1,0,0,0,1],
-                        [1,0,0,0,0,0,0,0,0,0,1,0,0,0,1],
-                        [1,0,1,0,0,1,1,0,1,1,0,0,1,0,1],
-                        [1,0,0,0,0,1,0,0,1,0,1,0,1,0,1],
-                        [1,0,0,0,0,1,0,0,0,0,0,0,1,0,1],
-                        [1,0,1,0,0,1,1,0,1,0,0,0,0,0,1],
-                        [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-                        [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
-                    ], dtype=int)
+        board = np.array([
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1],
+            [1, 0, 1, 1, 0, 1, 0, 1, 0, 1, 1, 0, 0, 0, 1],
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1],
+            [1, 0, 1, 0, 0, 1, 1, 0, 1, 1, 0, 0, 1, 0, 1],
+            [1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1],
+            [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1],
+            [1, 0, 1, 0, 0, 1, 1, 0, 1, 0, 0, 0, 0, 0, 1],
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+        ], dtype=int)
+
+        # Remove the central column (column index 10 in a 15-column array)
+
+        # Concatenate the board with itself horizontally
+        joined_board = np.concatenate([board, board[::-1]], axis=1)
+        joined_board = np.delete(joined_board, 14, axis=1)
+        joined_board = np.delete(joined_board, 14, axis=1)
+
+        self.board = joined_board
         self.view_board = self.board.copy() # used for rendering
 
         # assigns integer to actions
@@ -97,16 +107,26 @@ class Env:
         self.view_board = self.board.copy()
 
         # generating positions of harry, cup, death eater
-        random_indices = np.random.choice(len(self.zero_indices), 3, replace=False)
-        self.harry_pos, self.cup_pos, self.death_eater_pos = (self.zero_indices[i] for i in random_indices)
+        random_indices = np.random.choice(len(self.zero_indices), 4, replace=False)
+        self.harry_pos, self.cup_pos, self.death_eater_pos1, self.death_eater_pos2 = (self.zero_indices[i] for i in random_indices)
+
+        d_to_de1 = distance(self.harry_pos, self.death_eater_pos1)
+        d_to_de2 = distance(self.harry_pos, self.death_eater_pos2)
+        de_min = None
+        if d_to_de1 < d_to_de2:
+            de_min = self.death_eater_pos1
+        else:
+            de_min = self.death_eater_pos2
+
         # generating state of harry, cup, death eater
         self.h_state = random_indices[0]
         self.c_state = random_indices[1]
-        self.d_state = random_indices[2]
+        self.d_state = self.get_state(de_min)
 
         self.view_board[self.harry_pos] = 2
         self.view_board[self.cup_pos] = 3
-        self.view_board[self.death_eater_pos] = 4
+        self.view_board[self.death_eater_pos1] = 4
+        self.view_board[self.death_eater_pos2] = 4
 
         return self.view_board
 
@@ -114,12 +134,15 @@ class Env:
         self.steps += 1
         old_harry_pos = self.harry_pos
         old_d_to_cup = distance(old_harry_pos, self.cup_pos)
-        old_d_to_de = distance(old_harry_pos, self.death_eater_pos)
+        old_d_to_de1 = distance(old_harry_pos, self.death_eater_pos1)
+        old_d_to_de2 = distance(old_harry_pos, self.death_eater_pos2)
+        old_d_to_de = min(old_d_to_de1, old_d_to_de2)
 
         # move Harry first
         self.harry_pos = self.action_map[action](self.harry_pos, self.board)
         # then move Death Eater
-        self.death_eater_pos = death_eater_move(self.harry_pos, self.death_eater_pos, self.cup_pos,self.board)
+        self.death_eater_pos1 = death_eater_move(self.harry_pos, self.death_eater_pos1, self.cup_pos, self.board)
+        self.death_eater_pos2 = death_eater_move(self.harry_pos, self.death_eater_pos2, self.cup_pos, self.board)
 
         reward = -1  # initialized with -1 to reduce no. of steps taken
 
@@ -137,7 +160,7 @@ class Env:
             reward -= 1 * (new_d_to_cup - old_d_to_cup)
 
         # if harry moved away from death eater or not
-        new_d_to_de = distance(self.harry_pos, self.death_eater_pos)
+        new_d_to_de = distance(self.harry_pos, self.death_eater_pos1)
         if new_d_to_de < old_d_to_de:
             reward -= 2 * (old_d_to_de - new_d_to_de)
         elif new_d_to_de > old_d_to_de:
@@ -148,17 +171,19 @@ class Env:
         self.view_board = self.board.copy()
         self.view_board[self.harry_pos] = 2
         self.view_board[self.cup_pos] = 3
-        self.view_board[self.death_eater_pos] = 4
+        self.view_board[self.death_eater_pos1] = 4
+        self.view_board[self.death_eater_pos2] = 4
 
         if self.steps > 1000:
         # if max step limit exceeded
             reward -= 50
             done = True
 
-        if self.harry_pos == self.death_eater_pos:
+        if self.harry_pos == self.death_eater_pos1 or self.harry_pos == self.death_eater_pos2:
         # Game Over
             reward = -100
             done = True
+
         elif self.harry_pos == self.cup_pos:
         # Game Won
             reward = 100
@@ -168,7 +193,10 @@ class Env:
         # get state from position
         h_state = self.get_state(self.harry_pos)
         c_state = self.get_state(self.cup_pos)
-        d_state = self.get_state(self.death_eater_pos)
+        if old_d_to_de == old_d_to_de1:
+            d_state = self.get_state(self.death_eater_pos1)
+        else:
+            d_state = self.get_state(self.death_eater_pos2)
         return (h_state, c_state, d_state), reward, done, win
 
 # env = Env()
